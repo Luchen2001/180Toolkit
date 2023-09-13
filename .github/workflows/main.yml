@@ -1,0 +1,71 @@
+name: CICD
+
+on:
+  push:
+    branches: [feature/CICD, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend_CICD:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: ./server/package-lock.json
+      
+      - name: Create backend .env file
+        run: |
+          echo "CORS_WHITELIST=${{ secrets.CORS_WHITELIST }}" > server/.env
+          echo "PASSWORD=${{ secrets.PASSWORD }}" >> server/.env
+          echo "USERNAME=${{ secrets.USERNAME }}" >> server/.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> server/.env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> server/.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> server/.env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> server/.env
+
+      - run: cd server && npm ci
+      - run: cd server && npm test
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+      - name: Build and push Docker backend image
+        run: |
+          docker build -t luchen2001/180toolkit:backend ./server
+          docker push luchen2001/180toolkit:backend
+
+  frontend_CICD:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: ./client/package-lock.json
+          
+      - name: Create frontend .env file
+        run: |
+          echo "API_URL=${{ secrets.API_URL }}" > client/.env
+
+      - run: cd client && npm ci
+      - run: cd client && npm run build --if-present
+      - run: cd client && npm test
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+      - name: Build and push Docker frontend image
+        run: |
+          docker build -t luchen2001/180toolkit:frontend ./client
+          docker push luchen2001/180toolkit:frontend
