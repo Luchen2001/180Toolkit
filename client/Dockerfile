@@ -5,7 +5,7 @@ FROM node:18-slim
 WORKDIR /usr/src/app
 
 # Copy the built frontend application files
-COPY ./client/build ./
+COPY ./build ./
 
 # Install the 'serve' package globally
 RUN npm install -g serve
