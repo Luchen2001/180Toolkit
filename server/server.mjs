@@ -1,22 +1,41 @@
 import express from "express";
 import morgan from "morgan";
 import jwt from "jsonwebtoken";
+import cors from "cors";
 import mongoose from "mongoose";
 import cashflowRoute from "./routes/cashflow.mjs";
 import Company from "./models/company.mjs";
+import dotenv from 'dotenv';
 
-const PORT = process.env.PORT || 3000;
-const PASSWORD = process.env.PASSWORD || "defaultPassword";
-const USERNAME = process.env.USERNAME || "defaultUsername";
-const SECRET_KEY =
-  process.env.SECRET_KEY || "ONEeiGhtyM@arketsTOOLKITapplication";
+dotenv.config();
+
+
+const PORT = 3000;
+const whitelist = process.env.CORS_WHITELIST;
+const PASSWORD = process.env.PASSWORD;
+const USERNAME = process.env.USERNAME;
+const SECRET_KEY = process.env.SECRET_KEY;
+const DB_USERNAME = process.env.DB_USERNAME;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_HOST = process.env.DB_HOST;
+const dbURI = `mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}`;
+
 
 const app = express();
 
-// connect to MongoDB
-const dbURI =
-  "mongodb+srv://luchen:luchen@180markets.gk82dsd.mongodb.net/180toolkit?retryWrites=true&w=majority";
-//mongoose.connect(dbURI, {useNewUrlParser:true, useUnifiedTopology: true});
+app.use(morgan("dev"));
+
+app.use(
+  cors({
+    origin: whitelist,
+    credentials: true,
+    optionSuccessStatus: 200,
+  })
+);
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json());
+
 mongoose
   .connect(dbURI)
   .then((result) =>
@@ -26,8 +45,6 @@ mongoose
   )
   .catch((err) => console.log(err));
 
-app.use(morgan("dev"));
-app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Home page");
