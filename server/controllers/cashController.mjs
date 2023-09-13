@@ -41,7 +41,7 @@ async function getMarketCap(maxLimit) {
   const url =
     "https://asx.api.markitdigital.com/asx-research/1.0/companies/directory/file";
   const dirName = "csv";
-  const filePath = path.join(dirName, "ASX_Listed_Companies.csv");
+  const filePath = path.join(dirName, "Cash_ASX_Listed_Companies.csv");
 
   // Create the directory if it doesn't exist
   if (!fs.existsSync(dirName)) {
@@ -101,7 +101,7 @@ async function fetchAnnouncements(companyList) {
   const keywords = ["4c", "5b", "cash", "cashflow"];
   console.log(companyList);
 
-  const filePath = path.join("csv", "url_List.csv");
+  const filePath = path.join("csv", "Cash_url_List.csv");
 
   const csvWriter = createCsvWriter({
     path: filePath,
@@ -259,8 +259,8 @@ async function processBatch(batch) {
 }
 
 async function readAnnouncements() {
-  const url_filename = path.join("csv", "url_List.csv");
-  const rawData_filename = path.join("csv", "raw_data.csv");
+  const url_filename = path.join("csv", "Cash_url_List.csv");
+  const rawData_filename = path.join("csv", "Cash_raw_data.csv");
 
   const data = [];
   const csvWriter = createCsvWriter({
@@ -407,8 +407,8 @@ async function verifyAnnouncementsData() {
 
 //Step 5: remove and integrate the helper columns in csv/verified_data.csv and format it
 async function finalizeAnnouncementsData() {
-  const verifiedData_filename = path.join("csv", "verified_data.csv");
-  const finalDoc_filename  = path.join("csv", "4C_Doc.csv");
+  const verifiedData_filename = path.join("csv", "Cash_verified_data.csv");
+  const finalDoc_filename  = path.join("csv", "Cash_4C_Doc.csv");
 
   const readStream = fs.createReadStream(verifiedData_filename).pipe(csv());
   let newRows = [];
