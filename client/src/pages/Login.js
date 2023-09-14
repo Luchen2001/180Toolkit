@@ -12,6 +12,7 @@ export const Login = () => {
 
   const handleLogin = async () => {
     try {
+      console.log(process.env.API_URL);
       const response = await api.post("/login", { username, password });
       const token = response.data.token;
       // Save token to localStorage
