@@ -12,7 +12,7 @@ dotenv.config();
 
 
 const PORT = 3000;
-const whitelist = process.env.CORS_WHITELIST;
+const whitelist = "http://localhost:80";
 const PASSWORD = process.env.PASSWORD;
 const USERNAME = process.env.USERNAME;
 const SECRET_KEY = process.env.SECRET_KEY;
@@ -28,7 +28,7 @@ app.use(morgan("dev"));
 
 app.use(
   cors({
-    origin: whitelist,
+    origin: true,
     credentials: true,
     optionSuccessStatus: 200,
   })

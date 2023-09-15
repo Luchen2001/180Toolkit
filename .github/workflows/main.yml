@@ -2,18 +2,25 @@ name: CICD
 
 on:
   push:
-    branches: [feature/CICD, main]
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  backend_CICD:
+  CICD:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -21,51 +28,47 @@ jobs:
           cache: "npm"
           cache-dependency-path: ./server/package-lock.json
       
+       # Backend and frontend environment variables
       - name: Create backend .env file
         run: |
-          echo "CORS_WHITELIST=${{ secrets.CORS_WHITELIST }}" > server/.env
-          echo "PASSWORD=${{ secrets.PASSWORD }}" >> server/.env
+          echo "PASSWORD=${{ secrets.PASSWORD }}" > server/.env
           echo "USERNAME=${{ secrets.USERNAME }}" >> server/.env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> server/.env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> server/.env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> server/.env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> server/.env
+          echo "REACT_APP_BASE_URL=${{ secrets.SERVER_URL }}" > client/.env
 
       - run: cd server && npm ci
       - run: cd server && npm run test
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-      - name: Build and push Docker backend image
-        run: |
-          docker build -t luchen2001/180toolkit:backend ./server
-          docker push luchen2001/180toolkit:backend
-
-  frontend_CICD:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: ./client/package-lock.json
-          
-      - name: Create frontend .env file
-        run: |
-          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" > client/.env
-
       - run: cd client && npm ci
       - run: cd client && npm run build --if-present
       - run: cd client && npm test
+
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-      - name: Build and push Docker frontend image
+
+      - name: Build and push Docker image for ARM64
         run: |
-          docker build -t luchen2001/180toolkit:frontend ./client
-          docker push luchen2001/180toolkit:frontend
+          docker buildx create --use
+          docker buildx build --platform linux/arm64 -t luchen2001/180toolkit:latest . --push
+
+      - name: Setup SSH Key and SSH into EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.MY_SSH_PRIVATE_KEY }}
+          HOST: ec2-13-210-49-189.ap-southeast-2.compute.amazonaws.com
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 400 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$HOST <<EOF
+            # Check if the container is running and stop it
+            if docker ps | grep 180tooltik; then
+              docker stop 180tooltik
+            fi
+            # Check if the container exists (either running or stopped) and remove it
+            if docker ps -a | grep 180tooltik; then
+              docker rm 180tooltik
+            fi
+            docker pull luchen2001/180toolkit:latest
+            docker run -d -p 80:80 -p 3000:3000 --name 180tooltik luchen2001/180toolkit:latest
+          EOF
