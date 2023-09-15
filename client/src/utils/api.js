@@ -8,8 +8,6 @@ const api = axios.create({
   },
 });
 
-console.log(process.env.API_URL);
-
 // Request interceptor for API calls
 api.interceptors.request.use(
   async (config) => {

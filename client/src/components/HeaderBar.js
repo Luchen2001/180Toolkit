@@ -9,6 +9,11 @@ import {
   Button,
   Typography,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import React, { useState } from "react";
@@ -18,11 +23,14 @@ import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import PollIcon from "@mui/icons-material/Poll";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import api from "../utils/api";
 
 export const HeaderBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [privilegeCode, setPrivilegeCode] = useState("");
 
   const handleLogout = () => {
     // Delete the token
@@ -30,6 +38,24 @@ export const HeaderBar = () => {
 
     // Navigate to the login page
     navigate("/login");
+  };
+
+  const handleAvatarClick = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handlePrivilegeCodeSubmit = async () => {
+    // Call the API to check the code or compare with hardcoded value
+    const response = await api.post("/api/setting/auth", { privilegeCode });
+    const isValidCode = response.data.isValidCode;
+
+    if (isValidCode) {
+      navigate("/setting"); // Assuming "/privilege-setting" is the route to the privilege setting page
+    } else {
+      alert("Invalid code"); // Provide user feedback if necessary
+    }
+
+    setIsDialogOpen(false); // Close the dialog
   };
 
   const getPageName = () => {
@@ -92,6 +118,7 @@ export const HeaderBar = () => {
       <ListItem onClick={() => setIsDrawerOpen(false)}>
         <Button
           variant="text"
+          color="secondary"
           startIcon={<ShowChartIcon />}
           onClick={() => navigate("/stock")}
         >
@@ -160,7 +187,7 @@ export const HeaderBar = () => {
               flex: 1,
             }}
           >
-            <Avatar></Avatar>
+            <Avatar onClick={handleAvatarClick}></Avatar>
           </div>
         </Toolbar>
       </AppBar>
@@ -194,6 +221,28 @@ export const HeaderBar = () => {
           Log Out
         </Button>
       </Drawer>
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        <DialogTitle>Enter Privilege Code</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Privilege Code"
+            type="text"
+            fullWidth
+            value={privilegeCode}
+            onChange={(e) => setPrivilegeCode(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDialogOpen(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handlePrivilegeCodeSubmit} color="primary">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

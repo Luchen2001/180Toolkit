@@ -12,7 +12,6 @@ export const Login = () => {
 
   const handleLogin = async () => {
     try {
-      console.log(process.env.REACT_APP_API_URL);
       const response = await api.post("/login", { username, password });
       const token = response.data.token;
       // Save token to localStorage

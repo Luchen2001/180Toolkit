@@ -7,6 +7,7 @@ import { Placement } from './pages/Placement';
 import { Stock } from './pages/Stock';
 import { Admin } from './pages/Admin';
 import { Login } from './pages/Login';
+import { Setting } from './pages/Setting';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path='placement' element={<Placement />} />
             <Route path='stock' element={<Stock />} />
             <Route path='admin' element={<Admin />} />
+            <Route path='setting' element={<Setting />} />
           </Route>
         </Routes>
       </Router>
