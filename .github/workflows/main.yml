@@ -11,9 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -33,8 +34,6 @@ jobs:
 
       - run: cd server && npm ci
       - run: cd server && npm run test
-
-      # Frontend build and test
       - run: cd client && npm ci
       - run: cd client && npm run build --if-present
       - run: cd client && npm test
@@ -46,3 +45,15 @@ jobs:
         run: |
           docker build -t luchen2001/180toolkit:latest .
           docker push luchen2001/180toolkit:latest
+
+      - name: Setup SSH Key and SSH into EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.MY_SSH_PRIVATE_KEY }}
+          HOST: ec2-13-210-49-189.ap-southeast-2.compute.amazonaws.com
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 400 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$HOST <<EOF
+            docker pull luchen2001/180toolkit:latest
+            docker run -d --name 180tooltik luchen2001/180toolkit:latest
+          EOF

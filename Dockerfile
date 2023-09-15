@@ -17,8 +17,8 @@ RUN npm install
 # Install the 'serve' package globally for the frontend
 RUN npm install -g serve
 
-# Expose both backend and frontend ports
-EXPOSE 3000 8080
+# Expose frontend ports
+EXPOSE 80
 
 # Start both the frontend and backend using a single CMD
-CMD npm start & serve -s /usr/src/app/client/build -l 8080
+CMD npm start & serve -s /usr/src/app/client/build -l 80
