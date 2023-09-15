@@ -5,10 +5,10 @@ FROM node:18-slim
 WORKDIR /usr/src/app
 
 # Copy the built backend application files
-COPY ./server ./
+COPY ./ ./
 
 # Expose port 8080
-EXPOSE 8080
+EXPOSE 3000
 
 # Start the app
 CMD ["npm", "start"]

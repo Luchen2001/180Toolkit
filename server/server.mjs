@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import mongoose from "mongoose";
 import cashflowRoute from "./routes/cashflow.mjs";
+import settingRoute from "./routes/setting.mjs";
 import Company from "./models/company.mjs";
 import dotenv from 'dotenv';
 
@@ -80,3 +81,5 @@ function authenticateToken(req, res, next) {
 app.use("/api", authenticateToken); // All routes under /api will require authentication
 
 app.use("/api/cashflow", cashflowRoute);
+
+app.use("/api/setting", settingRoute);
