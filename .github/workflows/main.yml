@@ -28,7 +28,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: ./server/package-lock.json
       
-      # Backend environment variables
+       # Backend and frontend environment variables
       - name: Create backend .env file
         run: |
           echo "PASSWORD=${{ secrets.PASSWORD }}" > server/.env
@@ -37,6 +37,7 @@ jobs:
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> server/.env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> server/.env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> server/.env
+          echo "REACT_APP_BASE_URL=${{ secrets.SERVER_URL }}" > client/.env
 
       - run: cd server && npm ci
       - run: cd server && npm run test
@@ -69,5 +70,5 @@ jobs:
               docker rm 180tooltik
             fi
             docker pull luchen2001/180toolkit:latest
-            docker run -d -p 80:80 --name 180tooltik luchen2001/180toolkit:latest
+            docker run -d -p 80:80 -p 3000:3000 --name 180tooltik luchen2001/180toolkit:latest
           EOF

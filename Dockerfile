@@ -18,7 +18,7 @@ RUN npm install
 RUN npm install -g serve
 
 # Expose frontend ports
-EXPOSE 80
+EXPOSE 80 3000
 
 # Start both the frontend and backend using a single CMD
 CMD npm start & serve -s /usr/src/app/client/build -l 80

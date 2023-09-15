@@ -28,7 +28,7 @@ app.use(morgan("dev"));
 
 app.use(
   cors({
-    origin: whitelist,
+    origin: true,
     credentials: true,
     optionSuccessStatus: 200,
   })
