@@ -21,4 +21,4 @@ RUN npm install -g serve
 EXPOSE 3000 8080
 
 # Start both the frontend and backend using a single CMD
-CMD npm start --prefix server & serve -s /usr/src/app/client/build -l 8080
+CMD npm start & serve -s /usr/src/app/client/build -l 8080
