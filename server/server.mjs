@@ -12,7 +12,7 @@ dotenv.config();
 
 
 const PORT = 3000;
-const whitelist = "http://localhost:8080";
+const whitelist = "http://localhost:80";
 const PASSWORD = process.env.PASSWORD;
 const USERNAME = process.env.USERNAME;
 const SECRET_KEY = process.env.SECRET_KEY;
