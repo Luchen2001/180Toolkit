@@ -24,12 +24,12 @@ jobs:
       # Backend environment variables
       - name: Create backend .env file
         run: |
-          echo "PASSWORD=${{ secrets.PASSWORD }}" > backend/.env
-          echo "USERNAME=${{ secrets.USERNAME }}" >> backend/.env
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> backend/.env
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> backend/.env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> backend/.env
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> backend/.env
+          echo "PASSWORD=${{ secrets.PASSWORD }}" > server/.env
+          echo "USERNAME=${{ secrets.USERNAME }}" >> server/.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> server/.env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> server/.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> server/.env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> server/.env
 
       - run: cd server && npm ci
       - run: cd server && npm run test

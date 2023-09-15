@@ -5,13 +5,13 @@ FROM node:18-slim
 WORKDIR /usr/src/app
 
 # Copy the backend application files
-COPY ./backend ./backend
+COPY ./server ./server
 
 # Copy the built frontend application files
-COPY ./frontend/build ./frontend/build
+COPY ./client/build ./client/build
 
 # Install backend dependencies
-WORKDIR /usr/src/app/backend
+WORKDIR /usr/src/app/server
 RUN npm install
 
 # Install the 'serve' package globally for the frontend
@@ -21,4 +21,4 @@ RUN npm install -g serve
 EXPOSE 3000 8080
 
 # Start both the frontend and backend using a single CMD
-CMD npm start --prefix backend & serve -s /usr/src/app/frontend/build -l 8080
+CMD npm start --prefix server & serve -s /usr/src/app/client/build -l 8080
