@@ -52,14 +52,22 @@ jobs:
           docker buildx create --use
           docker buildx build --platform linux/arm64 -t luchen2001/180toolkit:latest . --push
 
-      - name: Setup SSH Key and SSH into EC2
-        env:
-          PRIVATE_KEY: ${{ secrets.MY_SSH_PRIVATE_KEY }}
-          HOST: ec2-13-210-49-189.ap-southeast-2.compute.amazonaws.com
-        run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 400 private_key.pem
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$HOST <<EOF
-            docker pull luchen2001/180toolkit:latest
-            docker run -d --name 180tooltik luchen2001/180toolkit:latest
-          EOF
+          - name: Setup SSH Key and SSH into EC2
+          env:
+            PRIVATE_KEY: ${{ secrets.MY_SSH_PRIVATE_KEY }}
+            HOST: ec2-13-210-49-189.ap-southeast-2.compute.amazonaws.com
+          run: |
+            echo "$PRIVATE_KEY" > private_key.pem
+            chmod 400 private_key.pem
+            ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$HOST <<EOF
+              # Check if the container is running and stop it
+              if docker ps | grep 180tooltik; then
+                docker stop 180tooltik
+              fi
+              # Check if the container exists (either running or stopped) and remove it
+              if docker ps -a | grep 180tooltik; then
+                docker rm 180tooltik
+              fi
+              docker pull luchen2001/180toolkit:latest
+              docker run -d -p 80:80 --name 180tooltik luchen2001/180toolkit:latest
+            EOF
