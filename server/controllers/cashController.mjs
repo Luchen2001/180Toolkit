@@ -340,8 +340,8 @@ async function verifyAnnouncementsData() {
 
 
 
-  const rawData_filename = path.join("csv", "raw_data.csv");
-  const verifiedData_filename = path.join("csv", "verified_data.csv");
+  const rawData_filename = path.join("csv", "Cash_raw_data.csv");
+  const verifiedData_filename = path.join("csv", "Cash_verified_data.csv");
 
   const readStream = fs.createReadStream(rawData_filename).pipe(csv());
   let data = [];
@@ -478,7 +478,6 @@ async function importFromCsvToDb() {
 
 export async function updateAllCash() {
   try {
-    /*
     const companyList = await getMarketCap(60000000);
     await fetchAnnouncements(companyList);
     console.log("Fetching announcements complete.");
@@ -487,7 +486,6 @@ export async function updateAllCash() {
     await verifyAnnouncementsData();
     console.log("Verifying announcements data complete.");
     await finalizeAnnouncementsData();
-    */
     console.log("4C document are ready.");
     await importFromCsvToDb();
     console.log("4C document published to database.");
