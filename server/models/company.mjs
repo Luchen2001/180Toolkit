@@ -1,17 +1,32 @@
 import mongoose from "mongoose";
-const Schema = mongoose.Schema;
 
-const companySchema = new Schema({
+const companySchema = new mongoose.Schema({
     code: {
         type: String,
         required: true
     },
-    cap: {
+    name: {
         type: String,
         required: true
+    },
+    cap: {
+        type: Number,
+        required: true
+    },
+    cash: {
+        type: Object,
+        default: {}
     }
-},{timestamps: true});
+}, { timestamps: true });
 
-const Company = mongoose.model('Company', companySchema);
 
-export default Company;
+let model;
+
+// Check if the model is already initialized
+if (mongoose.models.Company) {
+    model = mongoose.model('Company');
+} else {
+    model = mongoose.model('Company', companySchema);
+}
+
+export default model;

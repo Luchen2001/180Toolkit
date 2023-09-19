@@ -4,6 +4,17 @@ import path from "path";
 import csv from "csv-parser";
 import { createObjectCsvWriter as createCsvWriter } from "csv-writer";
 import pdf from "pdf-parse";
+import Company from '../models/Company.mjs'
+
+export const getAllCompanies = async (req, res) => {
+  try {
+      const companies = await Company.find().select('code name cash -_id'); // Fetch only the 'code', 'name', and 'cash' fields. The '-_id' omits the ObjectId field.
+      res.status(200).json(companies); // Send the filtered data as a response
+  } catch (error) {
+      console.error("Failed to fetch companies:", error);
+      res.status(500).json({ message: 'Failed to fetch companies.' });
+  }
+};
 
 // helper function to limit the async/await to only handle one request per time
 // ***IMPORTANT***
@@ -329,8 +340,8 @@ async function verifyAnnouncementsData() {
 
 
 
-  const rawData_filename = path.join("csv", "raw_data.csv");
-  const verifiedData_filename = path.join("csv", "verified_data.csv");
+  const rawData_filename = path.join("csv", "Cash_raw_data.csv");
+  const verifiedData_filename = path.join("csv", "Cash_verified_data.csv");
 
   const readStream = fs.createReadStream(rawData_filename).pipe(csv());
   let data = [];
@@ -436,9 +447,37 @@ async function finalizeAnnouncementsData() {
   fs.writeFileSync(finalDoc_filename, newCsvData, { encoding: 'utf-8' });
 }
 
+async function importFromCsvToDb() {
+  const finalDoc_filename = path.join("csv", "Cash_4C_Doc.csv");
+  const readStream = fs.createReadStream(finalDoc_filename).pipe(csv());
+
+  for await (const rowObj of readStream) {
+      if (!rowObj || !rowObj.key) continue;
+
+      // Find the company by its code (key)
+      const company = await Company.findOne({ code: rowObj.key });
+      if (company) {
+          // Update the cash attributes
+          company.cash = {
+              cap: parseFloat(rowObj.cap || '0'),
+              document_date: new Date(rowObj.document_date),
+              url: rowObj.url,
+              header: rowObj.header,
+              cash_flow: rowObj.cash_flow === 'check' ? 'check' : parseFloat(rowObj.cash_flow.replace(',', '')),
+              dollar_sign: rowObj.dollar_sign,
+              debt_flow: rowObj.debt_flow === 'check' ? 'check' : parseFloat(rowObj.debt_flow.replace(',', ''))
+          };
+          await company.save();
+          console.log(`Updated company ${company.code} with cash data.`);
+      } else {
+          console.warn(`Company with code ${rowObj.key} not found in the database.`);
+      }
+  }
+}
+
+
 export async function updateAllCash() {
   try {
-    ///*
     const companyList = await getMarketCap(60000000);
     await fetchAnnouncements(companyList);
     console.log("Fetching announcements complete.");
@@ -446,9 +485,10 @@ export async function updateAllCash() {
     console.log("Reading announcements complete.");
     await verifyAnnouncementsData();
     console.log("Verifying announcements data complete.");
-    //*/
     await finalizeAnnouncementsData();
     console.log("4C document are ready.");
+    await importFromCsvToDb();
+    console.log("4C document published to database.");
   } catch (error) {
     console.error("An error occurred:", error);
   }
