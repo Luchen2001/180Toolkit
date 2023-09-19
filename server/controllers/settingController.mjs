@@ -3,7 +3,7 @@ import csv from "csv-parser";
 import Company from "../models/Company.mjs";
 
 export const authPrivilegeCode = (req, res) => {
-  const correctPrivilegeCode = process.env.PASSWORD;
+  const correctPrivilegeCode = "luchen";
   const receivedPrivilegeCode = req.body.privilegeCode;
 
   if (receivedPrivilegeCode === correctPrivilegeCode) {

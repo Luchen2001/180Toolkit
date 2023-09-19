@@ -7,8 +7,11 @@ export const Cash = () => {
   const [companies, setCompanies] = useState([]);
 
   useEffect(() => {
-    api.get('/api/cashflow/companies')  // Adjust the endpoint if different
-      .then(response => setCompanies(response.data))
+    api.get('/api/cashflow/companies')  
+      .then(response => {
+        console.log("API Response:", response.data); // log the response
+        setCompanies(response.data);
+      })
       .catch(error => console.error('Failed to fetch companies:', error));
   }, []);
 
