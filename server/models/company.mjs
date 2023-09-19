@@ -19,7 +19,6 @@ const companySchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-
 let model;
 
 // Check if the model is already initialized
