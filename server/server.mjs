@@ -5,11 +5,9 @@ import cors from "cors";
 import mongoose from "mongoose";
 import cashflowRoute from "./routes/cashflow.mjs";
 import settingRoute from "./routes/setting.mjs";
-import Company from "./models/company.mjs";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
 dotenv.config();
-
 
 const PORT = 3000;
 const whitelist = "http://localhost:80";
@@ -20,7 +18,6 @@ const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_HOST = process.env.DB_HOST;
 const dbURI = `mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}`;
-
 
 const app = express();
 
@@ -45,7 +42,6 @@ mongoose
     })
   )
   .catch((err) => console.log(err));
-
 
 app.get("/", (req, res) => {
   res.send("Home page");

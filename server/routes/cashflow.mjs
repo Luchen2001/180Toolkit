@@ -1,7 +1,9 @@
 import express from 'express';
-import { updateAllCash } from '../controllers/cashController.mjs';
+import { updateAllCash, getAllCompanies } from '../controllers/cashController.mjs';
 
 const router = express.Router();
+
+router.get('/companies', getAllCompanies);
 
 router.post('/update_cashflow', (req, res) => {
     // Start the process
