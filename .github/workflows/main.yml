@@ -37,7 +37,7 @@ jobs:
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> server/.env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> server/.env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> server/.env
-          echo "REACT_APP_BASE_URL=${{ secrets.SERVER_URL }}" > client/.env
+          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" > client/.env
 
       - run: cd server && npm ci
       - run: cd server && npm run test
