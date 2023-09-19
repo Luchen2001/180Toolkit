@@ -4,7 +4,7 @@ import path from "path";
 import csv from "csv-parser";
 import { createObjectCsvWriter as createCsvWriter } from "csv-writer";
 import pdf from "pdf-parse";
-import Company from '../models/Company.mjs'
+import Company from '../models/company.mjs'
 
 export const getAllCompanies = async (req, res) => {
   try {

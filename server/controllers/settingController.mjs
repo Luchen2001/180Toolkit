@@ -1,6 +1,6 @@
 import axios from "axios";
 import csv from "csv-parser";
-import Company from "../models/Company.mjs";
+import Company from "../models/company.mjs";
 
 export const authPrivilegeCode = (req, res) => {
   const correctPrivilegeCode = "luchen";
