@@ -1,10 +1,44 @@
 import React, { useState } from "react";
-import { Button, CircularProgress, Snackbar } from "@mui/material";
+import { Button, CircularProgress, Snackbar, TextField, InputAdornment, IconButton } from "@mui/material";
+import PublishIcon from '@mui/icons-material/Publish';  // Import the publish icon
 import api from '../utils/api';
 
 export const Setting = () => {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [jsonFile, setJsonFile] = useState(null);  // state to keep track of the selected file
+
+  const handleFileChange = (event) => {
+    setJsonFile(event.target.files[0]);
+  };
+
+  const handleUploadJSON = async () => {
+    if (!jsonFile) return setNotification("No file selected.");
+
+    // Read the file
+    const reader = new FileReader();
+    reader.onload = async (fileLoadedEvent) => {
+      try {
+        const jsonData = JSON.parse(fileLoadedEvent.target.result);
+        console.log(jsonData); // Log the parsed data
+        
+        setLoading(true);
+
+        // Send the JSON data to the server
+        const response = await api.post("/api/setting/updateIndustry", jsonData);
+        console.log(response);
+        setNotification("JSON uploaded successfully!");
+        
+      } catch (error) {
+        setNotification("An error occurred while uploading the JSON.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Trigger the reading of the file. Once done, the onload function will be called
+    reader.readAsText(jsonFile);
+  };
 
   const handleRestartDB = async () => {
     setLoading(true);
@@ -51,6 +85,21 @@ export const Setting = () => {
       >
         Restart 4C Document
       </Button>
+      <TextField
+        variant="outlined"
+        type="file"
+        fullWidth
+        onChange={handleFileChange}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <IconButton onClick={handleUploadJSON}>
+                <PublishIcon />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
       {loading && <CircularProgress />} {/* Spinner while loading */}
       <Snackbar 
         open={!!notification} 
