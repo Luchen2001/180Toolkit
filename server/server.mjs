@@ -5,6 +5,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import cashflowRoute from "./routes/cashflow.mjs";
 import settingRoute from "./routes/setting.mjs";
+import adminRoute from "./routes/admin.mjs"
+import stocksRoute from './routes/stocks.mjs'
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -30,9 +32,9 @@ app.use(
     optionSuccessStatus: 200,
   })
 );
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({limit: '5mb', extended: true }));
 
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 mongoose
   .connect(dbURI)
@@ -62,11 +64,8 @@ app.post("/login", (req, res) => {
 // Middleware to validate JWT
 function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
-  console.log(authHeader);
   const token = authHeader && authHeader.split(" ")[1];
-  console.log(token);
   if (token == null) return res.sendStatus(401);
-
   jwt.verify(token, SECRET_KEY, (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
@@ -79,3 +78,10 @@ app.use("/api", authenticateToken); // All routes under /api will require authen
 app.use("/api/cashflow", cashflowRoute);
 
 app.use("/api/setting", settingRoute);
+
+app.use("/api/admin", adminRoute);
+
+app.use("/api/stocks", stocksRoute);
+
+
+

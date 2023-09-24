@@ -1,5 +1,6 @@
 # dotenv environment variables file
 .env
 
-# Ignore everything under csv folder
+# Ignore everything under csv and Json folder
 csv/
+Json/
