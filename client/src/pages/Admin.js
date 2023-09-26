@@ -1,11 +1,12 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { HeaderBar } from '../components/HeaderBar'
 import api from '../utils/api';
-import { Button, Snackbar } from "@mui/material";
+import { Alert, Button, Snackbar } from "@mui/material";
 
 export const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState('');
 
   const updateMarketInfoFromAPI = async () => {
     try {
@@ -22,18 +23,34 @@ export const Admin = () => {
     setLoading(true);
     try {
       const response = await updateMarketInfoFromAPI();
-      setNotification(response.message || "Successfully updated market info.");
+      
+      console.log(response);
     } catch (error) {
-      setNotification("Failed to update market info.");
+      console.log(error)
     } finally {
       setLoading(false);
+      setNotification("Updating market info, this would take around 2 minute");
     }
   };
 
+  const getLastUpdate = async () => {
+    try {
+      const response = await api.get('/api/stocks//getLastUpdate');
+      setLastUpdated(response.data.updatedAt);
+    } catch (error) {
+      console.error('Failed to fetch last update:', error.message || error);
+    }
+  };
+
+  useEffect(() => {
+    getLastUpdate();
+  }, []);
+
   return (
-    <div>
+    <div >
         <HeaderBar/>
-        <div>
+        <div style={{padding: "24px", display: "flex", flexDirection: "row",
+            alignItems: "center", gap: "12px" }}>
       <Button 
         color="primary" 
         variant="contained" 
@@ -42,9 +59,10 @@ export const Admin = () => {
       >
         Update Market Info
       </Button>
+      {lastUpdated && <Alert style={{ marginLeft: '10px' }}>Last Updated: {new Date(lastUpdated).toLocaleString()}</Alert>}
       <Snackbar 
         open={!!notification} 
-        autoHideDuration={6000} 
+        autoHideDuration={3000} 
         onClose={() => setNotification(null)}
         message={notification}
       />

@@ -15,7 +15,7 @@ export const authPrivilegeCode = (req, res) => {
 
 // fetch the csv file containing the company list and push the targeted companies to MongoDB
 export const restart_DB = async (req, res) => {
-  const max_limit = 60000000;
+  const max_limit = 200000000;
   try {
     // Specify responseType as stream
     const response = await axios.get(

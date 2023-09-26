@@ -478,7 +478,7 @@ async function importFromCsvToDb() {
 
 export async function updateAllCash() {
   try {
-    const companyList = await getMarketCap(60000000);
+    const companyList = await getMarketCap(200000000);
     await fetchAnnouncements(companyList);
     console.log("Fetching announcements complete.");
     await readAnnouncements();
