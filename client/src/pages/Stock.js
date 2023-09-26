@@ -135,7 +135,7 @@ export const Stock = () => {
   return (
     <div style={{ padding: "12px" }}>
       <HeaderBar />
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px"}}>
         <FormControl
           variant="outlined"
           style={{
@@ -226,6 +226,7 @@ export const Stock = () => {
         }}
         multiple
         style={{ padding: "12px" }}
+        size="small"
       >
         <ToggleButton value="code" color="primary">
           Code
@@ -280,7 +281,7 @@ export const Stock = () => {
         component={Paper}
         style={{ height: "70vh", overflow: "auto" }}
       >
-        <Table stickyHeader>
+        <Table stickyHeader  size = "medium">
           <TableHead>
             <TableRow>
               {columns.code && <TableCell>Code</TableCell>}

@@ -19,7 +19,7 @@ export const Cash = () => {
     <div>
       <HeaderBar />
       <TableContainer component={Paper}>
-        <Table>
+        <Table  size = "medium">
           <TableHead>
             <TableRow>
               <TableCell>Code</TableCell>

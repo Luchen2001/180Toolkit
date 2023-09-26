@@ -432,7 +432,7 @@ async function finalizeAnnouncementsData() {
           if (['cash', 'cash_unit', 'debt', 'debt_unit'].includes(key)) continue;  // skip these columns
           if (key === 'cash_flow' || key === 'debt_flow') {
               if (rowObj[key] !== 'check') {
-                  newRow.push(parseFloat(rowObj[key].replace(',', '')));
+                newRow.push(parseFloat(rowObj[key].replace(/,/g, '')));
               } else {
                   newRow.push(rowObj[key]);
               }
@@ -478,6 +478,7 @@ async function importFromCsvToDb() {
 
 export async function updateAllCash() {
   try {
+    /*
     const companyList = await getMarketCap(200000000);
     await fetchAnnouncements(companyList);
     console.log("Fetching announcements complete.");
@@ -485,6 +486,7 @@ export async function updateAllCash() {
     console.log("Reading announcements complete.");
     await verifyAnnouncementsData();
     console.log("Verifying announcements data complete.");
+    */
     await finalizeAnnouncementsData();
     console.log("4C document are ready.");
     await importFromCsvToDb();
