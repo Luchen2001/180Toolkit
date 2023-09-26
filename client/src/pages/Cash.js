@@ -38,15 +38,15 @@ export const Cash = () => {
               <TableRow key={company.code}>
                 <TableCell>{company.code}</TableCell>
                 <TableCell>{company.name}</TableCell>
-                <TableCell>{company.cash.cap}</TableCell>
-                <TableCell>{new Date(company.cash.document_date).toLocaleDateString()}</TableCell>
+                <TableCell>{company.cash?.cap ?? ''}</TableCell>
+                <TableCell>{new Date(company.cash?.document_date?? '').toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <a href={company.cash.url} target="_blank" rel="noopener noreferrer">Link</a>
+                  <a href={company.cash?.url?? ''} target="_blank" rel="noopener noreferrer">Link</a>
                 </TableCell>
-                <TableCell>{company.cash.header}</TableCell>
-                <TableCell>{company.cash.cash_flow}</TableCell>
-                <TableCell>{company.cash.debt_flow}</TableCell>
-                <TableCell>{company.cash.dollar_sign}</TableCell>
+                <TableCell>{company.cash?.header?? ''}</TableCell>
+                <TableCell>{company.cash?.cash_flow?? ''}</TableCell>
+                <TableCell>{company.cash?.debt_flow?? ''}</TableCell>
+                <TableCell>{company.cash?.dollar_sign?? ''}</TableCell>
               </TableRow>
             ))}
           </TableBody>
