@@ -113,7 +113,7 @@ export const Cash = () => {
     <div>
       <HeaderBar />
       <div style={{ display: "flex", flexDirection: "row", padding: "20px" }}>
-        <div>
+        <div style={{ display: "flex", flexDirection: "row"}}>
           <TextField
             name="code"
             label="Code"
@@ -178,7 +178,7 @@ export const Cash = () => {
         </div>
         <FormControl
           size="small"
-          style={{ width: "150px", marginLeft: "10vw" }}
+          style={{ width: "150px", marginLeft: "5vw" }}
         >
           <InputLabel>Sort By</InputLabel>
           <Select
@@ -193,7 +193,7 @@ export const Cash = () => {
       </div>
       <TableContainer
         component={Paper}
-        style={{ height: "85vh", overflow: "auto" }}
+        style={{ height: "80vh", overflow: "auto" }}
       >
         <Table stickyHeader size="medium">
           <TableHead>
