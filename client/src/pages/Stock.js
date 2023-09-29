@@ -279,7 +279,7 @@ export const Stock = () => {
       </ToggleButtonGroup>
       <TableContainer
         component={Paper}
-        style={{ height: "70vh", overflow: "auto" }}
+        style={{ height: "75vh", overflow: "auto" }}
       >
         <Table stickyHeader  size = "medium">
           <TableHead>
