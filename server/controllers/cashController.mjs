@@ -16,6 +16,44 @@ export const getAllCompanies = async (req, res) => {
   }
 };
 
+export const updateCompanyCashflow = async (req, res) => {
+  const {
+    code,
+    documentDate,
+    url,
+    header,
+    cashFlow,
+    debtFlow,
+    dollarSign
+  } = req.body;
+
+  if (!code) {
+    return res.status(400).json({ message: "Code is required to update company." });
+  }
+
+  const updateData = {};
+
+  // Only update the attributes with values
+  if (documentDate) updateData["cash.document_date"] = documentDate;
+  if (url) updateData["cash.url"] = url;
+  if (header) updateData["cash.header"] = header;
+  if (cashFlow) updateData["cash.cash_flow"] = cashFlow;
+  if (debtFlow) updateData["cash.debt_flow"] = debtFlow;
+  if (dollarSign) updateData["cash.dollar_sign"] = dollarSign;
+
+  try {
+    const updatedCompany = await Company.findOneAndUpdate({ code }, { $set: updateData }, { new: true });
+    if (!updatedCompany) {
+      return res.status(404).json({ message: "Company not found." });
+    }
+    res.status(200).json(updatedCompany);
+  } catch (error) {
+    console.error("Failed to update company:", error);
+    res.status(500).json({ message: 'Failed to update company.' });
+  }
+};
+
+
 // helper function to limit the async/await to only handle one request per time
 // ***IMPORTANT***
 // Only send and handle one request per time --> fetching pdf involves large heap size --> Otherwise there will be memory leakage
@@ -432,7 +470,7 @@ async function finalizeAnnouncementsData() {
           if (['cash', 'cash_unit', 'debt', 'debt_unit'].includes(key)) continue;  // skip these columns
           if (key === 'cash_flow' || key === 'debt_flow') {
               if (rowObj[key] !== 'check') {
-                  newRow.push(parseFloat(rowObj[key].replace(',', '')));
+                newRow.push(parseFloat(rowObj[key].replace(/,/g, '')));
               } else {
                   newRow.push(rowObj[key]);
               }
