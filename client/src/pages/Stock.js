@@ -64,7 +64,7 @@ export const Stock = () => {
 
   const getLastUpdate = async () => {
     try {
-      const response = await api.get('/api/stocks//getLastUpdate');
+      const response = await api.get('/api/stocks/getLastUpdate');
       setLastUpdated(response.data.updatedAt);
     } catch (error) {
       console.error('Failed to fetch last update:', error.message || error);

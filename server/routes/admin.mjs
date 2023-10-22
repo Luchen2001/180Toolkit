@@ -1,8 +1,9 @@
 import express from 'express';
-import { updateCompanyDataFromASX } from '../controllers/adminController.mjs';
+import { updateMarketData, updatePriceHistory } from '../controllers/adminController.mjs';
 
 const router = express.Router();
 
-router.get('/updateMarketInfo', updateCompanyDataFromASX);
+router.get('/updateMarketInfo', updateMarketData);
+router.get('/updatePriceData', updatePriceHistory);
 
 export default router;

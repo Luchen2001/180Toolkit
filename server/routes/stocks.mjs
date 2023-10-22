@@ -50,5 +50,49 @@ router.get('/getLastUpdate', async (req, res) => {
     }
 });
 
+router.get('/vwap/:code', async (req, res) => {
+    const { code } = req.params;
+
+    try {
+        // Find the company with the specified code
+        const company = await Company.findOne({ code: code });
+
+        if (!company) {
+            return res.status(404).json({ message: 'Company not found.' });
+        }
+
+        // Extract history data
+        const history = company.history;
+
+        // Check if there are at least 30 data points
+        if (history.length < 30) {
+            return res.status(400).json({ message: 'Insufficient historical data.' });
+        }
+
+        // Function to compute VWAP for a given range
+        const computeVWAP = (data) => {
+            const totalVolume = data.reduce((acc, curr) => acc + curr.volume, 0);
+            const totalValue = data.reduce((acc, curr) => acc + curr.close_price * curr.volume, 0);
+
+            return totalValue / totalVolume;
+        };
+
+        // Compute 5-day, 15-day, and 30-day VWAP
+        const vwap5 = computeVWAP(history.slice(0, 5));
+        const vwap15 = computeVWAP(history.slice(0, 15));
+        const vwap30 = computeVWAP(history.slice(0, 30));
+
+        // Respond with the computed VWAPs
+        res.json({
+            vwap5,
+            vwap15,
+            vwap30
+        });
+
+    } catch (error) {
+        console.error("Failed to compute VWAP", error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 export default router;

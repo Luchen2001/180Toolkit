@@ -93,7 +93,9 @@ export const Cash = () => {
       .catch((error) => {
         console.error("Failed to update company:", error);
         // Set error message and open the snackbar
-        setSnackbarMessage("Failed to update company. Please make sure input is correct.");
+        setSnackbarMessage(
+          "Failed to update company. Please make sure input is correct."
+        );
         setSnackbarSeverity("error");
         setSnackbarOpen(true);
       });
@@ -113,7 +115,7 @@ export const Cash = () => {
     <div>
       <HeaderBar />
       <div style={{ display: "flex", flexDirection: "row", padding: "20px" }}>
-        <div style={{ display: "flex", flexDirection: "row"}}>
+        <div style={{ display: "flex", flexDirection: "row" }}>
           <TextField
             name="code"
             label="Code"
@@ -176,10 +178,7 @@ export const Cash = () => {
             Submit
           </Button>
         </div>
-        <FormControl
-          size="small"
-          style={{ width: "150px", marginLeft: "5vw" }}
-        >
+        <FormControl size="small" style={{ width: "150px", marginLeft: "5vw" }}>
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortCriteria}
@@ -207,6 +206,7 @@ export const Cash = () => {
               <TableCell>Cash Flow</TableCell>
               <TableCell>Debt Flow</TableCell>
               <TableCell>Dollar Sign</TableCell>
+              {/* <TableCell>Index</TableCell> */}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -214,7 +214,7 @@ export const Cash = () => {
               <TableRow key={company.code}>
                 <TableCell>{company.code}</TableCell>
                 <TableCell>{company.name}</TableCell>
-                <TableCell>{company.cash?.cap ?? ""}</TableCell>
+                <TableCell>{`${Math.round(((company.market_cap /1000000 + Number.EPSILON))*1000)/1000} M` ?? ""}</TableCell>
                 <TableCell>
                   {new Date(
                     company.cash?.document_date ?? ""
@@ -230,9 +230,29 @@ export const Cash = () => {
                   </a>
                 </TableCell>
                 <TableCell>{company.cash?.header ?? ""}</TableCell>
-                <TableCell>{company.cash?.cash_flow ?? ""}</TableCell>
+                <TableCell>
+                  {company.cash?.cash_flow && (
+                    <span
+                      style={{
+                        color:
+                          company.cash?.cap_cash_ratio_index <= -3.5
+                            ? "red"
+                            : company.cash?.cap_cash_ratio_index > -3.5 &&
+                              company.cash?.cap_cash_ratio_index < -2
+                            ? "orange"
+                            : "inherit", // Default color
+                      }}
+                    >
+                      {company.cash.cash_flow}
+                    </span>
+                  )}
+                </TableCell>
+
                 <TableCell>{company.cash?.debt_flow ?? ""}</TableCell>
                 <TableCell>{company.cash?.dollar_sign ?? ""}</TableCell>
+                {/* <TableCell>
+                  {company.cash?.cap_cash_ratio_index ?? ""}
+                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>
