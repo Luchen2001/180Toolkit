@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Company from "../models/company.mjs";
 
-export const updateCompanyDataFromASX = async (req, res) => {
+export const updateMarketData = async (req, res) => {
   try {
     // Fetch all company codes from the database
     const companies = await Company.find({}, 'code');
@@ -44,3 +44,30 @@ export const updateCompanyDataFromASX = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+export const updatePriceHistory = async (req, res) => {
+  try {
+    const companies = await Company.find({}, 'code');
+
+    for (let company of companies) {
+      try {
+        // Fetch historical data for each company code
+        const historyResponse = await axios.get(`https://www.asx.com.au/asx/1/share/${company.code}/prices?interval=daily&count=30`);
+        const historyData = historyResponse.data.data; // Array of history data
+
+        // Update the history data in the database
+        await Company.findOneAndUpdate({ code: company.code }, { history: historyData });
+        console.log(`Updated history data for company code: ${company.code}`);
+      } catch (error) {
+        console.error(`Failed to fetch or update history data for company code: ${company.code}`, error.message);
+      }
+    }
+
+    res.json({ message: 'Successfully updated history data from ASX for all companies.' });
+
+  } catch (err) {
+    console.error("Failed to fetch company codes or process historical data", err.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+

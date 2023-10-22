@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+const historySchema = new mongoose.Schema({
+  code: String,
+  close_date: Date,
+  close_price: Number,
+  change_price: Number,
+  volume: Number,
+  day_high_price: Number,
+  day_low_price: Number,
+  change_in_percent: String
+}, { _id: false });
+
 const companySchema = new mongoose.Schema(
   {
     code: {
@@ -69,6 +80,10 @@ const companySchema = new mongoose.Schema(
         type: Number,
         required: false,
         default: 0,
+      },
+      history: {
+        type: [historySchema],
+        default: []
       }
   },
   { timestamps: true }

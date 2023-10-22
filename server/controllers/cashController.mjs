@@ -4,31 +4,26 @@ import path from "path";
 import csv from "csv-parser";
 import { createObjectCsvWriter as createCsvWriter } from "csv-writer";
 import pdf from "pdf-parse";
-import Company from '../models/company.mjs'
+import Company from "../models/company.mjs";
 
 export const getAllCompanies = async (req, res) => {
   try {
-      const companies = await Company.find().select('code name cash -_id'); // Fetch only the 'code', 'name', and 'cash' fields. The '-_id' omits the ObjectId field.
-      res.status(200).json(companies); // Send the filtered data as a response
+    const companies = await Company.find().select("code name cash market_cap -_id"); // Fetch only the 'code', 'name', and 'cash' fields. The '-_id' omits the ObjectId field.
+    res.status(200).json(companies); // Send the filtered data as a response
   } catch (error) {
-      console.error("Failed to fetch companies:", error);
-      res.status(500).json({ message: 'Failed to fetch companies.' });
+    console.error("Failed to fetch companies:", error);
+    res.status(500).json({ message: "Failed to fetch companies." });
   }
 };
 
 export const updateCompanyCashflow = async (req, res) => {
-  const {
-    code,
-    documentDate,
-    url,
-    header,
-    cashFlow,
-    debtFlow,
-    dollarSign
-  } = req.body;
+  const { code, documentDate, url, header, cashFlow, debtFlow, dollarSign } =
+    req.body;
 
   if (!code) {
-    return res.status(400).json({ message: "Code is required to update company." });
+    return res
+      .status(400)
+      .json({ message: "Code is required to update company." });
   }
 
   const updateData = {};
@@ -42,16 +37,57 @@ export const updateCompanyCashflow = async (req, res) => {
   if (dollarSign) updateData["cash.dollar_sign"] = dollarSign;
 
   try {
-    const updatedCompany = await Company.findOneAndUpdate({ code }, { $set: updateData }, { new: true });
+    const updatedCompany = await Company.findOneAndUpdate(
+      { code },
+      { $set: updateData },
+      { new: true }
+    );
     if (!updatedCompany) {
       return res.status(404).json({ message: "Company not found." });
     }
     res.status(200).json(updatedCompany);
   } catch (error) {
     console.error("Failed to update company:", error);
-    res.status(500).json({ message: 'Failed to update company.' });
+    res.status(500).json({ message: "Failed to update company." });
   }
 };
+
+// export const updateCompanyCashflow = async (req, res) => {
+//   const {
+//     code,
+//     documentDate,
+//     url,
+//     header,
+//     cashFlow,
+//     debtFlow,
+//     dollarSign
+//   } = req.body;
+
+//   if (!code) {
+//     return res.status(400).json({ message: "Code is required to update company." });
+//   }
+
+//   const updateData = {};
+
+//   // Only update the attributes with values
+//   if (documentDate) updateData["cash.document_date"] = documentDate;
+//   if (url) updateData["cash.url"] = url;
+//   if (header) updateData["cash.header"] = header;
+//   if (cashFlow) updateData["cash.cash_flow"] = cashFlow;
+//   if (debtFlow) updateData["cash.debt_flow"] = debtFlow;
+//   if (dollarSign) updateData["cash.dollar_sign"] = dollarSign;
+
+//   try {
+//     const updatedCompany = await Company.findOneAndUpdate({ code }, { $set: updateData }, { new: true });
+//     if (!updatedCompany) {
+//       return res.status(404).json({ message: "Company not found." });
+//     }
+//     res.status(200).json(updatedCompany);
+//   } catch (error) {
+//     console.error("Failed to update company:", error);
+//     res.status(500).json({ message: 'Failed to update company.' });
+//   }
+// };
 
 
 // helper function to limit the async/await to only handle one request per time
@@ -352,31 +388,27 @@ async function readAnnouncements() {
 //Step 4: check the syntax of the cashflow & debt & dollar unit --> concate the unit and cash string --> ensure the reading results are correct --> otherwise marked it as "check"
 // --> store to csv/verified_data.csv
 async function verifyAnnouncementsData() {
-
   function correctNumberFormat(num) {
     // Handle formats like 1,1081,062
     let match = num.match(/^(\d{1,3}),(\d{3})(\d{1,3}),?/);
     if (match) {
-        return match[1] + "," + match[2];
+      return match[1] + "," + match[2];
     }
 
     // Handle formats like 8431,599
     match = num.match(/^(\d{3})(\d{1,3}),\d{3}$/);
     if (match) {
-        return match[1];
+      return match[1];
     }
 
     // Handle formats like 975484
     match = num.match(/^(\d{3})(\d{3})$/);
     if (match) {
-        return match[1];
+      return match[1];
     }
 
     return num;
-}
-
-
-
+  }
 
   const rawData_filename = path.join("csv", "Cash_raw_data.csv");
   const verifiedData_filename = path.join("csv", "Cash_verified_data.csv");
@@ -385,70 +417,95 @@ async function verifyAnnouncementsData() {
   let data = [];
 
   for await (const rowObj of readStream) {
-      // Processing cash and debt logic from Python code
-      rowObj.cash = correctNumberFormat(rowObj.cash?.trim());
-      rowObj.debt = correctNumberFormat(rowObj.debt?.trim());
+    // Processing cash and debt logic from Python code
+    rowObj.cash = correctNumberFormat(rowObj.cash?.trim());
+    rowObj.debt = correctNumberFormat(rowObj.debt?.trim());
 
-      let cash = rowObj.cash?.trim();
-      let cash_unit = rowObj.cash_unit?.trim().replace("‘", "'").replace("’", "'");
-      let cash_flow = '';
-      let dollar_sign = '';
+    let cash = rowObj.cash?.trim();
+    let cash_unit = rowObj.cash_unit
+      ?.trim()
+      .replace("‘", "'")
+      .replace("’", "'");
+    let cash_flow = "";
+    let dollar_sign = "";
 
-      if (!cash || !cash_unit) {
-          cash_flow = 'check';
+    if (!cash || !cash_unit) {
+      cash_flow = "check";
+    } else {
+      if (cash.length === 1 && !isNaN(cash)) {
+        cash_flow = "check";
       } else {
-          if (!/[\d,\-\*]*/.test(cash)) {
-              cash_flow = 'check';
-          } else if (cash.length === 1 && !isNaN(cash)) {
-              cash_flow = 'check';
-          } else {
-              cash = cash.replace('*', '');
-              if (cash_unit.includes('$')) {
-                  let parts = cash_unit.split(/['ʼ‘]/);
-                  dollar_sign = parts[0];
-                  cash_flow = cash;
-                  if (parts.length > 1) {
-                      cash_flow = `${cash_flow},${parts[1]}`;
-                  }
-              } else {
-                  cash_flow = 'check';
-              }
-          }
+      if (cash.startsWith("(") && cash.endsWith(")")) {
+          cash = "-" + cash.slice(1, -1);
       }
+        cash = cash.replace(/[()*]/g, "");
+        if (cash_unit.includes("$")) {
+          let parts = cash_unit.split(/['ʼ‘]/);
+          dollar_sign = parts[0];
+          cash_flow = cash;
+          if (parts.length > 1) {
+            // Remove commas from cash_flow, convert to number
+            let cash_value = parseFloat(cash_flow.replace(/,/g, ""));
+            let zerosCount = parts[1].replace(/,/g, "").length;
+            // Multiply only if there are at least 3 zeros
+            if (zerosCount >= 3) {
+              let multiplier = Math.pow(10, zerosCount);
+              cash_value *= multiplier;
+            }
+            // Convert back to string with commas
+            cash_flow = cash_value.toLocaleString("en-US", {
+              minimumFractionDigits: 0,
+            });
 
-      let debt = rowObj.debt?.trim();
-      let debt_unit = rowObj.debt_unit?.trim().replace("‘", "'").replace("’", "'");
-      let debt_flow = '';
+            if (cash_flow === "6" || !/^[0-9,\-*]+$/.test(cash_flow)) {
+              cash_flow = "check";
+            }
+          }
+        } else {
+          cash_flow = "check";
+        }
+      }
+    }
 
-      if (!debt || !debt_unit) {
-          debt_flow = 'check';
+    let debt = rowObj.debt?.trim();
+    let debt_unit = rowObj.debt_unit
+      ?.trim()
+      .replace("‘", "'")
+      .replace("’", "'");
+    let debt_flow = "";
+
+    if (!debt || !debt_unit) {
+      debt_flow = "check";
+    } else {
+      if (!/[\d,\-\*]*/.test(debt)) {
+        debt_flow = "check";
+      } else if (debt.length === 1 && !isNaN(debt)) {
+        debt_flow = "check";
+      } else if (debt.includes("-")) {
+        debt_flow = "0";
       } else {
-          if (!/[\d,\-\*]*/.test(debt)) {
-              debt_flow = 'check';
-          } else if (debt.length === 1 && !isNaN(debt)) {
-              debt_flow = 'check';
-          } else if (debt.includes('-')) {
-              debt_flow = '0';
-          } else {
-              debt = debt.replace('*', '');
-              if (debt_unit.includes('$')) {
-                  debt_flow = debt;
-              } else {
-                  debt_flow = 'check';
-              }
-          }
+        debt = debt.replace("*", "");
+        if (debt_unit.includes("$")) {
+          debt_flow = debt;
+        } else {
+          debt_flow = "check";
+        }
       }
+    }
 
-      rowObj.cash_flow = cash_flow;
-      rowObj.dollar_sign = dollar_sign;
-      rowObj.debt_flow = debt_flow;
+    rowObj.cash_flow = cash_flow;
+    rowObj.dollar_sign = dollar_sign;
+    rowObj.debt_flow = debt_flow;
 
-      data.push(rowObj);
+    data.push(rowObj);
   }
 
   const csvWriter = createCsvWriter({
-      path: verifiedData_filename,
-      header: Object.keys(data[0]).map(header => ({ id: header, title: header }))
+    path: verifiedData_filename,
+    header: Object.keys(data[0]).map((header) => ({
+      id: header,
+      title: header,
+    })),
   });
 
   await csvWriter.writeRecords(data);
@@ -457,66 +514,103 @@ async function verifyAnnouncementsData() {
 //Step 5: remove and integrate the helper columns in csv/verified_data.csv and format it
 async function finalizeAnnouncementsData() {
   const verifiedData_filename = path.join("csv", "Cash_verified_data.csv");
-  const finalDoc_filename  = path.join("csv", "Cash_4C_Doc.csv");
+  const finalDoc_filename = path.join("csv", "Cash_4C_Doc.csv");
 
   const readStream = fs.createReadStream(verifiedData_filename).pipe(csv());
   let newRows = [];
-  newRows.push(['key', 'name', 'cap', 'document_date', 'url', 'header', 'cash_flow', 'dollar_sign', 'debt_flow']);
+  newRows.push([
+    "key",
+    "name",
+    "cap",
+    "document_date",
+    "url",
+    "header",
+    "cash_flow",
+    "dollar_sign",
+    "debt_flow",
+    "cap_cash_ratio_index"  // Add the new column
+  ]);
 
   for await (const rowObj of readStream) {
-      // Process the new row logic from Python code
-      let newRow = [];
-      for (let key in rowObj) {
-          if (['cash', 'cash_unit', 'debt', 'debt_unit'].includes(key)) continue;  // skip these columns
-          if (key === 'cash_flow' || key === 'debt_flow') {
-              if (rowObj[key] !== 'check') {
-                newRow.push(parseFloat(rowObj[key].replace(/,/g, '')));
-              } else {
-                  newRow.push(rowObj[key]);
-              }
-          } else {
-              newRow.push(rowObj[key]);
-          }
+    // Process the new row logic from Python code
+    let newRow = [];
+    for (let key in rowObj) {
+      if (["cash", "cash_unit", "debt", "debt_unit"].includes(key)) continue; // skip these columns
+
+      if (key === "cash_flow" || key === "debt_flow") {
+        if (rowObj[key] !== "check") {
+          newRow.push(parseFloat(rowObj[key].replace(/,/g, "")));
+        } else {
+          newRow.push(rowObj[key]);
+        }
+      } else {
+        newRow.push(rowObj[key]);
       }
-      newRows.push(newRow);
+    }
+
+    // Calculate cap_cash_ratio_index
+    const cap = parseFloat(rowObj["cap"].replace(/,/g, ""));
+    const cash_flow = parseFloat(rowObj["cash_flow"].replace(/,/g, ""));
+
+    let indexValue;
+    if (isNaN(cap) || isNaN(cash_flow)) {
+      indexValue = 0;
+    } else if (cash_flow < 0) {
+      indexValue = -3.5;
+    } else {
+      const ratio = cash_flow / cap;
+      indexValue = Math.log10(ratio);
+    }
+    newRow.push(indexValue); // Add the new index value to the row
+
+    newRows.push(newRow);
   }
 
-  const newCsvData = newRows.map(row => row.join(',')).join('\n');
-  fs.writeFileSync(finalDoc_filename, newCsvData, { encoding: 'utf-8' });
+  const newCsvData = newRows.map((row) => row.join(",")).join("\n");
+  fs.writeFileSync(finalDoc_filename, newCsvData, { encoding: "utf-8" });
 }
+
 
 async function importFromCsvToDb() {
   const finalDoc_filename = path.join("csv", "Cash_4C_Doc.csv");
   const readStream = fs.createReadStream(finalDoc_filename).pipe(csv());
 
   for await (const rowObj of readStream) {
-      if (!rowObj || !rowObj.key) continue;
+    if (!rowObj || !rowObj.key) continue;
 
-      // Find the company by its code (key)
-      const company = await Company.findOne({ code: rowObj.key });
-      if (company) {
-          // Update the cash attributes
-          company.cash = {
-              cap: parseFloat(rowObj.cap || '0'),
-              document_date: new Date(rowObj.document_date),
-              url: rowObj.url,
-              header: rowObj.header,
-              cash_flow: rowObj.cash_flow === 'check' ? 'check' : parseFloat(rowObj.cash_flow.replace(',', '')),
-              dollar_sign: rowObj.dollar_sign,
-              debt_flow: rowObj.debt_flow === 'check' ? 'check' : parseFloat(rowObj.debt_flow.replace(',', ''))
-          };
-          await company.save();
-          console.log(`Updated company ${company.code} with cash data.`);
-      } else {
-          console.warn(`Company with code ${rowObj.key} not found in the database.`);
-      }
+    // Find the company by its code (key)
+    const company = await Company.findOne({ code: rowObj.key });
+    if (company) {
+      // Update the cash attributes
+      company.cash = {
+        cap: parseFloat(rowObj.cap || "0"),
+        document_date: new Date(rowObj.document_date),
+        url: rowObj.url,
+        header: rowObj.header,
+        cash_flow:
+          rowObj.cash_flow === "check"
+            ? "check"
+            : parseFloat(rowObj.cash_flow.replace(",", "")),
+        dollar_sign: rowObj.dollar_sign,
+        debt_flow:
+          rowObj.debt_flow === "check"
+            ? "check"
+            : parseFloat(rowObj.debt_flow.replace(",", "")),
+        cap_cash_ratio_index: parseFloat(rowObj.cap_cash_ratio_index || "0")
+      };
+      await company.save();
+      console.log(`Updated company ${company.code} with cash data.`);
+    } else {
+      console.warn(
+        `Company with code ${rowObj.key} not found in the database.`
+      );
+    }
   }
 }
 
-
 export async function updateAllCash() {
   try {
-    const companyList = await getMarketCap(200000000);
+    const companyList = await getMarketCap(201000000);
     await fetchAnnouncements(companyList);
     console.log("Fetching announcements complete.");
     await readAnnouncements();
@@ -531,4 +625,3 @@ export async function updateAllCash() {
     console.error("An error occurred:", error);
   }
 }
-

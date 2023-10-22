@@ -33,6 +33,31 @@ export const Admin = () => {
     }
   };
 
+  const updatePriceHistoryFromAPI = async () => {
+    try {
+      const response = await api.get('/api/admin/updatePriceData');
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update market info:', error.message || error);
+      throw error;
+    }
+  };
+
+  const handleUpdatePriceHistory = async () => {
+    setLoading(true);
+    try {
+      const response = await updatePriceHistoryFromAPI();
+      
+      console.log(response);
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false);
+      setNotification("Updating market info, this would take around 2 minute");
+    }
+  };
+
   const getLastUpdate = async () => {
     try {
       const response = await api.get('/api/stocks//getLastUpdate');
@@ -58,6 +83,14 @@ export const Admin = () => {
         disabled={loading}
       >
         Update Market Info
+      </Button>
+      <Button 
+        color="primary" 
+        variant="contained" 
+        onClick={handleUpdatePriceHistory} 
+        disabled={loading}
+      >
+        Update Price History
       </Button>
       {lastUpdated && <Alert style={{ marginLeft: '10px' }}>Last Updated: {new Date(lastUpdated).toLocaleString()}</Alert>}
       <Snackbar 
