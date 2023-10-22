@@ -4,3 +4,4 @@
 # Ignore everything under csv and Json folder
 csv/
 Json/
+.DS_Store
