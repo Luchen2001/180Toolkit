@@ -22,6 +22,7 @@ import {
   Alert,
 } from "@mui/material";
 import api from "../utils/api";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
 export const Stock = () => {
   const [data, setData] = useState([]);
@@ -42,12 +43,13 @@ export const Stock = () => {
     offerPrice: false,
     previousClosePrice: false,
     averageDailyVolume: false,
+    helper4C: false,
   });
   const [sortColumn, setSortColumn] = useState("market_cap");
   const [sortOrder, setSortOrder] = useState("desc"); // 'desc' for descending, 'asc' for ascending
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredData, setFilteredData] = useState([]);
-  const [lastUpdated, setLastUpdated] = useState('');
+  const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -64,13 +66,12 @@ export const Stock = () => {
 
   const getLastUpdate = async () => {
     try {
-      const response = await api.get('/api/stocks/getLastUpdate');
+      const response = await api.get("/api/stocks/getLastUpdate");
       setLastUpdated(response.data.updatedAt);
     } catch (error) {
-      console.error('Failed to fetch last update:', error.message || error);
+      console.error("Failed to fetch last update:", error.message || error);
     }
   };
-
 
   function getNumericValue(item, column) {
     if (column === "change_in_percent") {
@@ -91,6 +92,72 @@ export const Stock = () => {
 
     return item[column];
   }
+  const downloadCsv = () => {
+    // Define the columns and their headers in the data
+    const headers = [
+      'Code', 'Name', 'Market Cap', 'Last Price', 'Change in Percent',
+      'Volume', 'Cash Flow', 'Debt Flow', 'Dollar Sign', 'Document Date', 
+      'URL', 'Header', 'Industry', 'Mining Comp', 'Commodities', 'Bid Price', 
+      'Offer Price', 'Previous Close Price', 'Average Daily Volume'
+      // ... add other headers as necessary
+    ];
+  
+    // Start with the headers, joined by commas
+    const csvRows = [headers.join(',')]; 
+  
+    // Add rows for each entry in the filteredData
+    filteredData.forEach((row) => {
+      // Map each row's values to the CSV format, with proper formatting applied
+      const csvRow = [
+        `"${row.code}"`,
+        `"${row.name}"`,
+        `"${row.market_cap ? `${(row.market_cap / 1000000).toFixed(3)} M` : ''}"`,
+        `"${row.last_price?? ""}"`,
+        `"${row.change_in_percent}"`,
+        `"${row.volume?? ""}"`,
+        `"${row.cash?.cash_flow?? ""}"`,
+        `"${row.cash?.debt_flow?? ""}"`,
+        `"${row.cash?.dollar_sign?? ""}"`,
+        `"${row.cash?.document_date ? new Date(row.cash.document_date).toLocaleDateString() : ''}"`,
+        `"${row.cash?.url ?? ""}"`,
+        `"${row.cash?.header?? ""}"`,
+        `"${row.industry?? ""}"`,
+        `"${row.is_mining_comp?? ""}"`,
+        `"${row.commodities?? ""}"`,
+        `"${row.bid_price?? ""}"`,
+        `"${row.offer_price?? ""}"`,
+        `"${row.previous_close_price?? ""}"`,
+        `"${row.average_daily_volume?? ""}"`
+        // ... add other row values as necessary
+      ].join(',');
+  
+      // Add the csvRow to the csvRows array
+      csvRows.push(csvRow);
+    });
+  
+    // Generate CSV string
+    const csvString = csvRows.join('\n');
+  
+   
+  // Create a Blob from the CSV String
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+  // Create link and trigger download
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'data.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Cleanup the URL object
+  URL.revokeObjectURL(url);
+  };
+  
+  
+  // Use this function as the click handler for your CSV download button
+  
 
   useEffect(() => {
     setFilteredData(data); // Whenever the data changes, reset the filteredData
@@ -129,13 +196,13 @@ export const Stock = () => {
     });
 
     setFilteredData(sortedData);
-  // eslint-disable-next-line
+    // eslint-disable-next-line
   }, [sortColumn, sortOrder]);
 
   return (
     <div style={{ padding: "12px" }}>
       <HeaderBar />
-      <div style={{ display: "flex", alignItems: "center", gap: "12px"}}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <FormControl
           variant="outlined"
           style={{
@@ -212,7 +279,20 @@ export const Stock = () => {
             Search
           </Button>
         </div>
-        {lastUpdated && <Alert style={{ marginLeft: '10px' }}>Last Updated: {new Date(lastUpdated).toLocaleString()}</Alert>}
+        {lastUpdated && (
+          <Alert style={{ marginLeft: "10px" }}>
+            Last Updated: {new Date(lastUpdated).toLocaleString()}
+          </Alert>
+        )}
+        <Button
+            variant="contained"
+            color="success"
+            size="medium"
+            style={{ width: "60px", marginLeft:"10px"}}
+            onClick={() => downloadCsv()}
+          >
+            <CloudDownloadIcon />
+          </Button>
       </div>
 
       <ToggleButtonGroup
@@ -276,12 +356,15 @@ export const Stock = () => {
         <ToggleButton value="averageDailyVolume" color="primary">
           Average Daily Volume
         </ToggleButton>
+        <ToggleButton value="helper4C" color="secondary">
+          4C Helper
+        </ToggleButton>
       </ToggleButtonGroup>
       <TableContainer
         component={Paper}
         style={{ height: "75vh", overflow: "auto" }}
       >
-        <Table stickyHeader  size = "medium">
+        <Table stickyHeader size="medium">
           <TableHead>
             <TableRow>
               {columns.code && <TableCell>Code</TableCell>}
@@ -295,6 +378,13 @@ export const Stock = () => {
               {columns.cashFlow && <TableCell>Cash Flow</TableCell>}
               {columns.debtFlow && <TableCell>Debt Flow</TableCell>}
               {columns.dollarSign && <TableCell>Dollar Sign</TableCell>}
+              {columns.helper4C && (
+                <>
+                  <TableCell>Document Date</TableCell>
+                  <TableCell>URL</TableCell>
+                  <TableCell>Header</TableCell>
+                </>
+              )}
               {columns.industry && <TableCell>Industry</TableCell>}
               {columns.isMiningComp && <TableCell>Mining Comp</TableCell>}
               {columns.commodities && <TableCell>Commodities</TableCell>}
@@ -313,20 +403,48 @@ export const Stock = () => {
               <TableRow key={row.code}>
                 {columns.code && <TableCell>{row.code}</TableCell>}
                 {columns.name && <TableCell>{row.name}</TableCell>}
-                {columns.marketCap && <TableCell>{Math.round((row.market_cap/1000000 + Number.EPSILON )*1000)/1000}M</TableCell>}
+                {columns.marketCap && (
+                  <TableCell>
+                    {Math.round(
+                      (row.market_cap / 1000000 + Number.EPSILON) * 1000
+                    ) / 1000}
+                    M
+                  </TableCell>
+                )}
                 {columns.lastPrice && <TableCell>{row.last_price}</TableCell>}
                 {columns.changeInPercent && (
                   <TableCell>{row.change_in_percent}</TableCell>
                 )}
                 {columns.volume && <TableCell>{row.volume}</TableCell>}
                 {columns.cashFlow && (
-                  <TableCell>{row.cash?.cash_flow?? ''}</TableCell>
+                  <TableCell>{row.cash?.cash_flow ?? ""}</TableCell>
                 )}
                 {columns.debtFlow && (
-                  <TableCell>{row.cash?.debt_flow?? ''}</TableCell>
+                  <TableCell>{row.cash?.debt_flow ?? ""}</TableCell>
                 )}
                 {columns.dollarSign && (
-                  <TableCell>{row.cash?.dollar_sign?? ''}</TableCell>
+                  <TableCell>{row.cash?.dollar_sign ?? ""}</TableCell>
+                )}
+                {columns.helper4C && (
+                  <>
+                    <TableCell>
+                      {new Date(
+                        row.cash?.document_date ?? ""
+                      ).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {
+                        <a
+                          href={row.cash?.url ?? ""}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Link
+                        </a>
+                      }
+                    </TableCell>
+                    <TableCell>{row.cash?.header ?? ""}</TableCell>
+                  </>
                 )}
                 {columns.industry && <TableCell>{row.industry}</TableCell>}
                 {columns.isMiningComp && (

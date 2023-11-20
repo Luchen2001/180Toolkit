@@ -54,7 +54,7 @@ app.post("/login", (req, res) => {
   const { username, password } = req.body;
   if (username == USERNAME && password == PASSWORD) {
     const token = jwt.sign({ username: username }, SECRET_KEY, {
-      expiresIn: "7d",
+      expiresIn: "30d",
     });
     return res.json({ token: token }); // Added return here.
   }
