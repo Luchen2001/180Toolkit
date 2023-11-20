@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { HeaderBar } from "../components/HeaderBar";
 import api from "../utils/api"; // Import your API helper function
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
 export const Cash = () => {
   const [companies, setCompanies] = useState([]);
@@ -101,6 +102,66 @@ export const Cash = () => {
       });
   };
 
+  const downloadCsv = () => {
+    // Create CSV content
+    const csvRows = [
+      // This is the header row
+      [
+        "Code",
+        "Name",
+        "Cap",
+        "Document Date",
+        "URL",
+        "Header",
+        "Cash Flow",
+        "Debt Flow",
+        "Dollar Sign",
+      ],
+    ];
+
+    // Add rows for each company
+    sortedCompanies.forEach((company) => {
+      const csvRow = [];
+      csvRow.push(company.code);
+      csvRow.push(company.name);
+      csvRow.push(
+        company.market_cap
+          ? `${
+              Math.round(
+                (company.market_cap / 1000000 + Number.EPSILON) * 1000
+              ) / 1000
+            } M`
+          : ""
+      );
+      csvRow.push(
+        company.cash?.document_date
+          ? new Date(company.cash?.document_date).toLocaleDateString()
+          : ""
+      );
+      csvRow.push(company.cash?.url ? company.cash?.url : "");
+      csvRow.push(company.cash?.header ? company.cash?.header : "");
+      csvRow.push(company.cash?.cash_flow ? company.cash?.cash_flow : "");
+      csvRow.push(company.cash?.debt_flow ? company.cash?.debt_flow : "");
+      csvRow.push(company.cash?.dollar_sign ? company.cash?.dollar_sign : "");
+
+      csvRows.push(`"${csvRow.join('","')}"`);
+    });
+
+    // Combine rows and encode
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    // Create a link and download
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "cash_data.csv";
+    link.click();
+
+    // Clean up URL.createObjectURL call
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     api
       .get("/api/cashflow/companies")
@@ -178,7 +239,7 @@ export const Cash = () => {
             Submit
           </Button>
         </div>
-        <FormControl size="small" style={{ width: "150px", marginLeft: "5vw" }}>
+        <FormControl size="small" style={{ width: "150px", marginLeft: "3vw" }}>
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortCriteria}
@@ -189,6 +250,15 @@ export const Cash = () => {
             <MenuItem value="debtFlow">Debt Flow</MenuItem>
           </Select>
         </FormControl>
+          <Button
+            variant="contained"
+            color="success"
+            size="medium"
+            style={{ width: "60px", marginLeft:"3vw"}}
+            onClick={downloadCsv}
+          >
+            <CloudDownloadIcon />
+          </Button>
       </div>
       <TableContainer
         component={Paper}
@@ -214,7 +284,13 @@ export const Cash = () => {
               <TableRow key={company.code}>
                 <TableCell>{company.code}</TableCell>
                 <TableCell>{company.name}</TableCell>
-                <TableCell>{`${Math.round(((company.market_cap /1000000 + Number.EPSILON))*1000)/1000} M` ?? ""}</TableCell>
+                <TableCell>
+                  {`${
+                    Math.round(
+                      (company.market_cap / 1000000 + Number.EPSILON) * 1000
+                    ) / 1000
+                  } M` ?? ""}
+                </TableCell>
                 <TableCell>
                   {new Date(
                     company.cash?.document_date ?? ""
