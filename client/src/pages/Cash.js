@@ -239,7 +239,6 @@ export const Cash = () => {
             Submit
           </Button>
         </div>
-
         <FormControl size="small" style={{ width: "150px", marginLeft: "3vw" }}>
           <InputLabel>Sort By</InputLabel>
           <Select
