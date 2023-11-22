@@ -46,7 +46,7 @@ mongoose
   .catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
-  res.send("Home page");
+  res.send(`Home page: ${DB_HOST}`);
 });
 
 // Dummy login endpoint (for simplicity)
